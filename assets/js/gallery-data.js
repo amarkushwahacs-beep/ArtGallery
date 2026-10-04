@@ -1,24 +1,5 @@
 const paintings = [
-	{
-		id: "File_1",
-		title: "painting1",
-		artist: "Amar",
-		date: "2026-10-12",
-		description: "File one description",
-		price: "$123",
-		wall: "left",
-		image: "./Upload_Painting/1791060304764-IMG_4594.JPG"
-	},
-	{
-		id: "File_2",
-		title: "Uploaded Test Painting",
-		artist: "Test Artist",
-		date: "2026-10-03",
-		description: "File two description",
-		price: "$120",
-		wall: "right",
-		image: "./Upload_Painting/1791060256194-134201177197500740.jpg"
-	},
+
 	{
 		id: "File_3",
 		title: "1791059895115-IMG_4358",
