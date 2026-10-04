@@ -182,6 +182,33 @@ async function loadSavedPaintings() {
   }
 }
 
+async function fetchWithAdminAccess(url, options) {
+  const storageKey = "art-gallery-admin-password";
+  let password = sessionStorage.getItem(storageKey);
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (!password) {
+      password = window.prompt("Enter the gallery admin password:");
+    }
+    if (password === null) return null;
+
+    const response = await fetch(url, {
+      ...options,
+      headers: { ...options.headers, "X-Admin-Password": password }
+    });
+
+    if (response.status !== 401) {
+      sessionStorage.setItem(storageKey, password);
+      return response;
+    }
+
+    sessionStorage.removeItem(storageKey);
+    password = null;
+  }
+
+  throw new Error("Incorrect admin password.");
+}
+
 addPaintingForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -202,10 +229,11 @@ addPaintingForm.addEventListener("submit", async (event) => {
     formData.append("price", document.getElementById("paintingPrice").value.trim());
     formData.append("image", file);
 
-    const response = await fetch("/api/upload", {
+    const response = await fetchWithAdminAccess("/api/upload", {
       method: "POST",
       body: formData
     });
+    if (!response) return;
 
     if (!response.ok) {
       throw new Error("Upload failed");
@@ -217,7 +245,7 @@ addPaintingForm.addEventListener("submit", async (event) => {
     showDetails(newPainting);
     closeAddPaintingModal();
   } catch (error) {
-    alert("The painting could not be uploaded. Please start the local server and try again.");
+    alert("The painting could not be uploaded. Check the server and admin password, then try again.");
   }
 });
 
@@ -228,13 +256,14 @@ deletePaintingBtn.addEventListener("click", async () => {
   if (!confirmed) return;
 
   try {
-    const response = await fetch("/api/delete", {
+    const response = await fetchWithAdminAccess("/api/delete", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ image: selectedPainting.image })
     });
+    if (!response) return;
 
     if (!response.ok) {
       throw new Error("Delete failed");

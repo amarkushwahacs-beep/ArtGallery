@@ -3,13 +3,14 @@ from urllib.parse import urlparse
 from email.parser import BytesParser
 from email.policy import default
 import json
+import hmac
 import os
 import random
 import shutil
 import time
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_DIR = os.path.join(PROJECT_ROOT, "Upload_Painting")
+UPLOAD_DIR = os.environ.get("UPLOAD_DIR", os.path.join(PROJECT_ROOT, "Upload_Painting"))
 UPLOAD_DIR = os.path.abspath(UPLOAD_DIR)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -44,6 +45,8 @@ class GalleryHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
 
         if parsed.path == "/api/upload":
+            if not self.require_admin():
+                return
             self.upload_painting()
             return
 
@@ -54,11 +57,29 @@ class GalleryHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
 
         if parsed.path == "/api/delete":
+            if not self.require_admin():
+                return
             self.delete_painting()
             return
 
         self.send_response(404)
         self.end_headers()
+
+    def require_admin(self):
+        expected_password = os.environ.get("ADMIN_PASSWORD")
+        supplied_password = self.headers.get("X-Admin-Password", "")
+        if expected_password and hmac.compare_digest(supplied_password, expected_password):
+            return True
+
+        status = 401 if expected_password else 503
+        message = "Admin password required" if expected_password else "Admin password is not configured"
+        body = json.dumps({"error": message}).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+        return False
 
     def send_json(self, payload):
         body = json.dumps(payload).encode("utf-8")
@@ -222,7 +243,7 @@ class GalleryHandler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     import time
-    PORT = 8000
+    PORT = int(os.environ.get("PORT", "8000"))
     server = ThreadingHTTPServer(("0.0.0.0", PORT), GalleryHandler)
-    print(f"Art Gallery server running at http://localhost:{PORT}")
+    print(f"Art Gallery server running on port {PORT}")
     server.serve_forever()
