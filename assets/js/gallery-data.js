@@ -1,6 +1,5 @@
 const paintings = [
-
-	{
+{
 		id: "File_3",
 		title: "1791059895115-IMG_4358",
 		artist: "Saved Artist",
@@ -219,5 +218,15 @@ const paintings = [
 		price: "$230",
 		wall: "right",
 		image: "./Upload_Painting/IMG_4594.JPG"
-	}
+	},
+{
+	"id": "saved-1791109920103-IMG_3703",
+	"title": "qwerty",
+	"artist": "Amar123",
+	"date": "2026-10-04",
+	"description": "New file  gtest",
+	"price": "$150",
+	"wall": "left",
+	"image": "./Upload_Painting/1791109920103-IMG_3703.JPG"
+}
 ];

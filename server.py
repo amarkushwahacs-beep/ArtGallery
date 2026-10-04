@@ -12,6 +12,7 @@ import time
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.environ.get("UPLOAD_DIR", os.path.join(PROJECT_ROOT, "Upload_Painting"))
 UPLOAD_DIR = os.path.abspath(UPLOAD_DIR)
+GALLERY_DATA_PATH = os.path.join(PROJECT_ROOT, "assets", "js", "gallery-data.js")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
@@ -118,6 +119,81 @@ class GalleryHandler(SimpleHTTPRequestHandler):
         with open(meta_path, "w", encoding="utf-8") as meta_file:
             json.dump(metadata, meta_file)
 
+    def sync_gallery_data_file(self, payload):
+        if not os.path.exists(GALLERY_DATA_PATH):
+            return
+
+        with open(GALLERY_DATA_PATH, "r", encoding="utf-8") as gallery_file:
+            gallery_content = gallery_file.read()
+
+        const_index = gallery_content.find("const paintings = [")
+        if const_index == -1:
+            return
+
+        start_index = const_index + len("const paintings = [")
+        closing_index = gallery_content.rfind("];")
+        if closing_index == -1 or closing_index <= start_index:
+            return
+
+        existing_items = gallery_content[start_index:closing_index].strip()
+        entry_text = json.dumps(payload, ensure_ascii=False, indent="\t")
+
+        if existing_items:
+            updated_items = existing_items.rstrip().rstrip(",")
+            updated_body = f"\n{updated_items},\n{entry_text}\n"
+        else:
+            updated_body = f"\n{entry_text}\n"
+
+        updated_content = (
+            gallery_content[:start_index]
+            + updated_body
+            + gallery_content[closing_index:]
+        )
+
+        with open(GALLERY_DATA_PATH, "w", encoding="utf-8") as gallery_file:
+            gallery_file.write(updated_content)
+
+    def remove_gallery_data_entry(self, image_path):
+        if not os.path.exists(GALLERY_DATA_PATH):
+            return
+
+        with open(GALLERY_DATA_PATH, "r", encoding="utf-8") as gallery_file:
+            gallery_content = gallery_file.read()
+
+        needle = f'"image": "{image_path}"'
+        if needle not in gallery_content:
+            return
+
+        start_index = gallery_content.rfind("{", 0, gallery_content.index(needle))
+        if start_index == -1:
+            return
+
+        depth = 0
+        end_index = -1
+        for index in range(start_index, len(gallery_content)):
+            char = gallery_content[index]
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    end_index = index
+                    break
+
+        if end_index == -1:
+            return
+
+        before = gallery_content[:start_index]
+        after = gallery_content[end_index + 1:]
+
+        if before.rstrip().endswith(","):
+            before = before.rstrip()[:-1]
+        if after.lstrip().startswith(","):
+            after = after.lstrip()[1:]
+
+        with open(GALLERY_DATA_PATH, "w", encoding="utf-8") as gallery_file:
+            gallery_file.write(before + after)
+
     def read_painting_metadata(self, filename):
         meta_path = self.metadata_path_for(filename)
         if not os.path.exists(meta_path):
@@ -223,6 +299,7 @@ class GalleryHandler(SimpleHTTPRequestHandler):
             }
 
             self.save_painting_metadata(safe_name, payload)
+            self.sync_gallery_data_file(payload)
             self.send_json(payload)
             return
 
@@ -253,6 +330,7 @@ class GalleryHandler(SimpleHTTPRequestHandler):
             if os.path.exists(meta_path):
                 os.remove(meta_path)
 
+            self.remove_gallery_data_entry(image_path)
             self.send_json({"status": "deleted", "image": filename})
         except Exception as exc:
             self.send_response(500)
