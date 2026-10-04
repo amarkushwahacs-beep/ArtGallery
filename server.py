@@ -281,6 +281,12 @@ class GalleryHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 return
 
+            existing_images = [
+                name for name in os.listdir(UPLOAD_DIR)
+                if name.lower().endswith((".png", ".jpg", ".jpeg", ".webp", ".gif"))
+            ]
+            next_wall = "left" if len(existing_images) % 2 == 0 else "right"
+
             safe_name = f"{int(time.time() * 1000)}-{uploaded_filename.replace(' ', '-') }"
             save_path = os.path.join(UPLOAD_DIR, safe_name)
 
@@ -294,7 +300,7 @@ class GalleryHandler(SimpleHTTPRequestHandler):
                 "date": date_value,
                 "description": description,
                 "price": price,
-                "wall": "left",
+                "wall": next_wall,
                 "image": f"./Upload_Painting/{safe_name}"
             }
 

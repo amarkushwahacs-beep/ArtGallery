@@ -76,7 +76,7 @@ function renderPaintings() {
   leftWall.innerHTML = "";
   rightWall.innerHTML = "";
 
-  activePaintings.forEach((p) => {
+  activePaintings.forEach((p, index) => {
     const frame = document.createElement("div");
     frame.className = "painting";
     frame.style.backgroundImage = `url("${p.image}")`;
@@ -84,7 +84,7 @@ function renderPaintings() {
     frame.dataset.title = p.title;
     frame.addEventListener("click", () => showDetails(p));
 
-    if (p.wall === "left") {
+    if (index % 2 === 0) {
       leftWall.appendChild(frame);
     } else {
       rightWall.appendChild(frame);
@@ -232,9 +232,10 @@ async function submitAddPainting(event) {
       throw new Error(payload.error || "Upload failed.");
     }
 
+    const nextWall = activePaintings.length % 2 === 0 ? "left" : "right";
     activePaintings.unshift({
       ...payload,
-      wall: payload.wall || "left"
+      wall: payload.wall || nextWall
     });
 
     renderPaintings();

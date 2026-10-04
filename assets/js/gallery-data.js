@@ -58,5 +58,15 @@ const paintings = [
 	"price": "$155",
 	"wall": "left",
 	"image": "./Upload_Painting/1791110643340-IMG_4081.JPG"
+},
+{
+	"id": "saved-1791110888957-b",
+	"title": "New Test",
+	"artist": "Local Artist",
+	"date": "2026-10-04",
+	"description": "Some art",
+	"price": "$150",
+	"wall": "right",
+	"image": "./Upload_Painting/1791110888957-b.png"
 }
 ];
