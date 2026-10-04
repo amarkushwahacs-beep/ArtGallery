@@ -16,8 +16,52 @@ const inquiryModal = document.getElementById("inquiryModal");
 const inquiryForm = document.getElementById("inquiryForm");
 const closeInquiryBtn = document.getElementById("closeInquiryBtn");
 const cancelInquiryBtn = document.getElementById("cancelInquiryBtn");
+const addPaintingBtn = document.getElementById("addPaintingBtn");
+const deletePaintingBtn = document.getElementById("deletePaintingBtn");
+const addPaintingModal = document.getElementById("addPaintingModal");
+const addPaintingForm = document.getElementById("addPaintingForm");
+const closeAddPaintingBtn = document.getElementById("closeAddPaintingBtn");
+const cancelAddPaintingBtn = document.getElementById("cancelAddPaintingBtn");
 
 let selectedPainting = null;
+
+function isLocalhost() {
+  const host = window.location.hostname.toLowerCase();
+  return host === "localhost"
+    || host === "127.0.0.1"
+    || host === "::1"
+    || host === "[::1]"
+    || host.startsWith("127.0.0.");
+}
+
+function getAdminPassword() {
+  const storedValue = sessionStorage.getItem("gallery-admin-password");
+  if (storedValue !== null) {
+    return storedValue;
+  }
+
+  const entered = window.prompt(
+    "Enter admin password for localhost editing (leave blank if no password is configured):",
+    ""
+  );
+
+  if (entered === null) {
+    return "";
+  }
+
+  sessionStorage.setItem("gallery-admin-password", entered);
+  return entered;
+}
+
+function setLocalAdminControls() {
+  const enabled = isLocalhost();
+  if (addPaintingBtn) {
+    addPaintingBtn.style.display = enabled ? "inline-flex" : "none";
+  }
+  if (deletePaintingBtn) {
+    deletePaintingBtn.style.display = enabled ? "inline-flex" : "none";
+  }
+}
 
 function resetDetailsView() {
   selectedPainting = null;
@@ -26,11 +70,13 @@ function resetDetailsView() {
   artistWorks.classList.remove("visible");
 }
 
+let activePaintings = Array.isArray(paintings) ? [...paintings] : [];
+
 function renderPaintings() {
   leftWall.innerHTML = "";
   rightWall.innerHTML = "";
 
-  paintings.forEach((p) => {
+  activePaintings.forEach((p) => {
     const frame = document.createElement("div");
     frame.className = "painting";
     frame.style.backgroundImage = `url("${p.image}")`;
@@ -61,7 +107,7 @@ function showDetails(painting) {
 }
 
 function renderArtistWorks(artistName) {
-  const relatedPaintings = paintings.filter((painting) => painting.artist === artistName);
+  const relatedPaintings = activePaintings.filter((painting) => painting.artist === artistName);
   artistWorksGrid.innerHTML = "";
 
   if (!relatedPaintings.length) {
@@ -85,6 +131,41 @@ function renderArtistWorks(artistName) {
   });
 }
 
+async function loadSavedPaintings() {
+  if (!isLocalhost()) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/paintings");
+    if (!response.ok) {
+      return;
+    }
+
+    const savedPaintings = await response.json();
+    if (!Array.isArray(savedPaintings)) {
+      return;
+    }
+
+    const merged = [];
+    const seen = new Set();
+
+    [...savedPaintings, ...activePaintings].forEach((painting) => {
+      const imagePath = painting && painting.image ? painting.image.toLowerCase() : "";
+      if (!imagePath || seen.has(imagePath)) {
+        return;
+      }
+      seen.add(imagePath);
+      merged.push(painting);
+    });
+
+    activePaintings = merged;
+    renderPaintings();
+  } catch (error) {
+    console.warn("Unable to load saved paintings from local upload API:", error);
+  }
+}
+
 moreArtistBtn.addEventListener("click", () => {
   if (!selectedPainting) return;
   renderArtistWorks(selectedPainting.artist);
@@ -106,6 +187,109 @@ function closeInquiryModal() {
   inquiryForm.reset();
 }
 
+function openAddPaintingModal() {
+  addPaintingModal.classList.add("visible");
+  addPaintingModal.setAttribute("aria-hidden", "false");
+  addPaintingForm.querySelector("input[name='title']").focus();
+}
+
+function closeAddPaintingModal() {
+  addPaintingModal.classList.remove("visible");
+  addPaintingModal.setAttribute("aria-hidden", "true");
+  addPaintingForm.reset();
+}
+
+async function submitAddPainting(event) {
+  event.preventDefault();
+
+  const formData = new FormData(addPaintingForm);
+  const file = formData.get("image");
+
+  if (!file || !file.name) {
+    window.alert("Please choose an image file first.");
+    return;
+  }
+
+  const submitButton = addPaintingForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = "Uploading...";
+
+  try {
+    const headers = {};
+    const password = getAdminPassword();
+    if (password) {
+      headers["X-Admin-Password"] = password;
+    }
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      headers,
+      body: formData
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || "Upload failed.");
+    }
+
+    activePaintings.unshift({
+      ...payload,
+      wall: payload.wall || "left"
+    });
+
+    renderPaintings();
+    showDetails(activePaintings[0]);
+    closeAddPaintingModal();
+  } catch (error) {
+    window.alert(error.message || "Unable to upload the painting.");
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Add painting";
+  }
+}
+
+async function deleteSelectedPainting() {
+  if (!selectedPainting) {
+    return;
+  }
+
+  const confirmed = window.confirm(`Delete "${selectedPainting.title}" from the gallery?`);
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const headers = {
+      "Content-Type": "application/json"
+    };
+    const password = getAdminPassword();
+    if (password) {
+      headers["X-Admin-Password"] = password;
+    }
+
+    const response = await fetch("/api/delete", {
+      method: "DELETE",
+      headers,
+      body: JSON.stringify({ image: selectedPainting.image })
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || "Failed to delete painting.");
+    }
+
+    const index = activePaintings.findIndex((painting) => painting.image === selectedPainting.image);
+    if (index >= 0) {
+      activePaintings.splice(index, 1);
+    }
+
+    renderPaintings();
+    resetDetailsView();
+  } catch (error) {
+    window.alert(error.message || "Unable to delete the painting.");
+  }
+}
+
 inquireBtn.addEventListener("click", openInquiryModal);
 closeInquiryBtn.addEventListener("click", closeInquiryModal);
 cancelInquiryBtn.addEventListener("click", closeInquiryModal);
@@ -114,6 +298,34 @@ inquiryModal.addEventListener("click", (event) => {
     closeInquiryModal();
   }
 });
+
+if (addPaintingBtn) {
+  addPaintingBtn.addEventListener("click", openAddPaintingModal);
+}
+
+if (closeAddPaintingBtn) {
+  closeAddPaintingBtn.addEventListener("click", closeAddPaintingModal);
+}
+
+if (cancelAddPaintingBtn) {
+  cancelAddPaintingBtn.addEventListener("click", closeAddPaintingModal);
+}
+
+if (addPaintingModal) {
+  addPaintingModal.addEventListener("click", (event) => {
+    if (event.target === addPaintingModal) {
+      closeAddPaintingModal();
+    }
+  });
+}
+
+if (addPaintingForm) {
+  addPaintingForm.addEventListener("submit", submitAddPainting);
+}
+
+if (deletePaintingBtn) {
+  deletePaintingBtn.addEventListener("click", deleteSelectedPainting);
+}
 
 inquiryForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -145,3 +357,5 @@ function formatDate(dateStr) {
 
 renderPaintings();
 resetDetailsView();
+setLocalAdminControls();
+loadSavedPaintings();

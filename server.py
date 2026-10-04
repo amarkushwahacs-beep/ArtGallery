@@ -65,16 +65,36 @@ class GalleryHandler(SimpleHTTPRequestHandler):
         self.send_response(404)
         self.end_headers()
 
+    def is_localhost_request(self):
+        host = self.headers.get("Host", "").split(":", 1)[0].lower()
+        remote_host = self.client_address[0].lower() if self.client_address else ""
+        localhost_hosts = {"localhost", "127.0.0.1", "::1", "[::1]"}
+        if host in localhost_hosts:
+            return True
+        if remote_host in {"127.0.0.1", "::1", "0.0.0.0"}:
+            return True
+        return False
+
     def require_admin(self):
+        if not self.is_localhost_request():
+            body = json.dumps({"error": "Painting management is only enabled on localhost"}).encode("utf-8")
+            self.send_response(403)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return False
+
         expected_password = os.environ.get("ADMIN_PASSWORD")
-        supplied_password = self.headers.get("X-Admin-Password", "")
-        if expected_password and hmac.compare_digest(supplied_password, expected_password):
+        if not expected_password:
             return True
 
-        status = 401 if expected_password else 503
-        message = "Admin password required" if expected_password else "Admin password is not configured"
-        body = json.dumps({"error": message}).encode("utf-8")
-        self.send_response(status)
+        supplied_password = self.headers.get("X-Admin-Password", "")
+        if hmac.compare_digest(supplied_password, expected_password):
+            return True
+
+        body = json.dumps({"error": "Admin password required"}).encode("utf-8")
+        self.send_response(401)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()

@@ -8,14 +8,15 @@
 4. Select the `main` branch and the `/(root)` folder, then save.
 5. Open the published URL shown in the Pages settings after deployment completes.
 
-This is a static, read-only gallery. To add or update artwork, put its image in
-`Upload_Painting/` and add its details to `assets/js/gallery-data.js`, then commit
-and push the changes. GitHub Pages does not run the Python API, so online uploads
-and deletes are disabled. The inquiry form opens the visitor's email application.
+This is a static read-only gallery on GitHub Pages. To add or update artwork,
+put its image in `Upload_Painting/` and add its details to `assets/js/gallery-data.js`,
+then commit and push the changes. GitHub Pages does not run the Python API, so
+online uploads and deletes are disabled.
 
 ## Run locally
 
-Run `python server.py` and open `http://localhost:8000`. The local Python server
-is retained for backend development; the gallery UI in this Pages version is
-read-only. Edit `assets/js/gallery-data.js` and add images under `Upload_Painting/`
-to update the static gallery.
+Run `python server.py` and open `http://localhost:8000`. On localhost, the gallery
+shows the Add painting and Delete painting controls. The API is restricted to local
+requests only, so uploaded or deleted works stay local to the development environment.
+If `ADMIN_PASSWORD` is set, the request must include the matching `X-Admin-Password`
+header.
