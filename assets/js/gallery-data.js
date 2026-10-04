@@ -59,5 +59,14 @@ const paintings = [
 	"wall": "left",
 	"image": "./Upload_Painting/1791110643340-IMG_4081.JPG"
 },
-
+{
+	"id": "saved-1791116332100-IMG_3950",
+	"title": "Painting7",
+	"artist": "Laxmi",
+	"date": "2026-10-04",
+	"description": "Details on life",
+	"price": "$150",
+	"wall": "left",
+	"image": "./Upload_Painting/1791116332100-IMG_3950.JPG"
+}
 ];

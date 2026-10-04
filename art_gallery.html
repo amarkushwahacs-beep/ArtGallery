@@ -40,6 +40,7 @@
       max-height: 100vh;
       margin: 0;
       perspective: 1200px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='104'%3E%3Crect width='192' height='104' fill='%23c3a08b'/%3E%3Cg fill='%23965340'%3E%3Cpath d='M2 2h92v48H2zM98 2h92v48H98zM-46 54h92v48h-92zM50 54h92v48H50zM146 54h92v48h-92z'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 192px 104px repeat;
     }
 
     /* Ceiling */
@@ -59,9 +60,7 @@
     /* Left and right walls */
     .wall-left,
     .wall-right {
-      background:
-        linear-gradient(to right, rgba(28, 15, 12, 0.08), rgba(28, 15, 12, 0.32)),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='104'%3E%3Crect width='192' height='104' fill='%23c3a08b'/%3E%3Cg fill='%23965340'%3E%3Cpath d='M2 2h92v48H2zM98 2h92v48H98zM-46 54h92v48h-92zM50 54h92v48H50zM146 54h92v48h-92z'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 192px 104px repeat;
+      background: linear-gradient(to right, rgba(28, 15, 12, 0.08), rgba(28, 15, 12, 0.32));
       position: relative;
       overflow-y: auto;
       padding: 40px 20px;
@@ -81,14 +80,14 @@
 
     /* Central pathway */
     .pathway {
-      background: radial-gradient(circle at center, #0b0c10 0, #000 70%);
-      border-left: 1px solid rgba(102, 252, 241, 0.15);
-      border-right: 1px solid rgba(102, 252, 241, 0.15);
+      background: linear-gradient(to right, rgba(28, 15, 12, 0.24), transparent 12%, transparent 88%, rgba(28, 15, 12, 0.24));
+      border-left: 1px solid rgba(54, 35, 26, 0.5);
+      border-right: 1px solid rgba(54, 35, 26, 0.5);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      padding: 20px 16px 120px;
+      justify-content: center;
+      padding: 20px 16px;
       position: relative;
       overflow: hidden;
     }
@@ -118,26 +117,26 @@
       content: "";
       position: absolute;
       top: 0;
-      width: 2px;
+      width: 4px;
       height: 100%;
-      background: linear-gradient(to bottom, rgba(102, 252, 241, 0.4), transparent);
+      background: linear-gradient(to right, rgba(54, 35, 26, 0.68), rgba(241, 220, 198, 0.38), rgba(54, 35, 26, 0.68));
       left: 50%;
       transform: translateX(-50%);
-      opacity: 0.4;
+      opacity: 0.85;
     }
 
     .gallery-toolbar {
       position: relative;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 18px;
+      gap: 10px;
       width: 100%;
-      margin-bottom: 10px;
     }
 
     .gallery-title {
-      font-size: 2rem;
+      font-size: 1.4rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent-color);
@@ -145,21 +144,17 @@
       margin: 0;
     }
 
-    #addPaintingBtn {
-      position: absolute;
-      right: 0;
-    }
-
     .gallery-subtitle {
       font-size: 0.95rem;
-      color: #9da1a8;
+      color: #f1e4d3;
       text-align: center;
       max-width: 480px;
-      margin-bottom: 30px;
+      text-shadow: 0 1px 4px rgba(28, 15, 12, 0.9);
     }
 
     /* Painting frames */
     .painting {
+      display: block;
       width: 170px;
       height: 220px;
       margin: 18px auto;
@@ -221,6 +216,7 @@
 
     /* Detail panel */
     .details-panel {
+      display: none;
       position: relative;
       left: auto;
       bottom: auto;
@@ -241,6 +237,7 @@
     }
 
     .details-panel.visible {
+      display: block;
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
@@ -325,6 +322,7 @@
     }
 
     .artist-work {
+      display: block;
       position: relative;
       height: 96px;
       border-radius: 10px;
@@ -506,6 +504,11 @@
         perspective: none;
       }
 
+      .ceiling,
+      .floor {
+        grid-column: 1;
+      }
+
       .wall-left,
       .wall-right {
         transform: none;
@@ -515,7 +518,7 @@
 
       .pathway {
         border: none;
-        padding-bottom: 30px;
+        padding-bottom: 20px;
       }
 
       .painting {
@@ -536,6 +539,7 @@
         margin-top: auto;
       }
     }
+
   </style>
 </head>
 <body>
@@ -555,7 +559,7 @@
         <button class="btn btn-secondary" id="addPaintingBtn" type="button" style="display: none;">Add painting</button>
       </div>
       <div class="gallery-subtitle">
-        Walk through a virtual corridor of curated artworks. Click any painting to reveal its story.
+        Walk through a virtual corridor of curated artworks. Select a painting to view its details and price.
       </div>
 
       <div class="selected-artwork" id="selectedArtwork"></div>
@@ -571,8 +575,8 @@
           <span class="details-artist" id="detailsArtist"></span>
           <div class="details-actions">
             <button class="btn btn-secondary" id="moreArtistBtn">More from artist</button>
-            <button class="btn btn-danger" id="deletePaintingBtn" type="button" style="display: none;">Delete painting</button>
             <button class="btn btn-primary" id="inquireBtn">Contact for Pricing</button>
+            <button class="btn btn-danger" id="deletePaintingBtn" type="button" style="display: none;">Delete painting</button>
           </div>
         </div>
 

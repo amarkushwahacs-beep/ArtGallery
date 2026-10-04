@@ -72,17 +72,22 @@ function resetDetailsView() {
 
 let activePaintings = Array.isArray(paintings) ? [...paintings] : [];
 
+function artworkPageUrl(painting) {
+  return `./artwork.html?id=${encodeURIComponent(painting.id)}`;
+}
+
 function renderPaintings() {
   leftWall.innerHTML = "";
   rightWall.innerHTML = "";
 
   activePaintings.forEach((p, index) => {
-    const frame = document.createElement("div");
+    const frame = document.createElement("a");
     frame.className = "painting";
+    frame.href = artworkPageUrl(p);
+    frame.setAttribute("aria-label", `${p.title} by ${p.artist}`);
     frame.style.backgroundImage = `url("${p.image}")`;
     frame.dataset.id = p.id;
     frame.dataset.title = p.title;
-    frame.addEventListener("click", () => showDetails(p));
 
     if (index % 2 === 0) {
       leftWall.appendChild(frame);
@@ -116,8 +121,9 @@ function renderArtistWorks(artistName) {
   }
 
   relatedPaintings.forEach((painting) => {
-    const card = document.createElement("div");
+    const card = document.createElement("a");
     card.className = "artist-work";
+    card.href = artworkPageUrl(painting);
     card.style.backgroundImage = `url("${painting.image}")`;
     card.title = painting.title;
 
@@ -126,7 +132,6 @@ function renderArtistWorks(artistName) {
     label.textContent = painting.title;
     card.appendChild(label);
 
-    card.addEventListener("click", () => showDetails(painting));
     artistWorksGrid.appendChild(card);
   });
 }
@@ -238,9 +243,7 @@ async function submitAddPainting(event) {
       wall: payload.wall || nextWall
     });
 
-    renderPaintings();
-    showDetails(activePaintings[0]);
-    closeAddPaintingModal();
+    window.location.href = artworkPageUrl(activePaintings[0]);
   } catch (error) {
     window.alert(error.message || "Unable to upload the painting.");
   } finally {
