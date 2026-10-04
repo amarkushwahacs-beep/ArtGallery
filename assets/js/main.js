@@ -16,12 +16,6 @@ const inquiryModal = document.getElementById("inquiryModal");
 const inquiryForm = document.getElementById("inquiryForm");
 const closeInquiryBtn = document.getElementById("closeInquiryBtn");
 const cancelInquiryBtn = document.getElementById("cancelInquiryBtn");
-const addPaintingBtn = document.getElementById("openAddPaintingBtn");
-const addPaintingModal = document.getElementById("addPaintingModal");
-const addPaintingForm = document.getElementById("addPaintingForm");
-const closeAddPaintingBtn = document.getElementById("closeAddPaintingBtn");
-const cancelAddPaintingBtn = document.getElementById("cancelAddPaintingBtn");
-const deletePaintingBtn = document.getElementById("deletePaintingBtn");
 
 let selectedPainting = null;
 
@@ -112,33 +106,12 @@ function closeInquiryModal() {
   inquiryForm.reset();
 }
 
-function openAddPaintingModal() {
-  addPaintingModal.classList.add("visible");
-  addPaintingModal.setAttribute("aria-hidden", "false");
-  document.getElementById("artistName").focus();
-}
-
-function closeAddPaintingModal() {
-  addPaintingModal.classList.remove("visible");
-  addPaintingModal.setAttribute("aria-hidden", "true");
-  addPaintingForm.reset();
-}
-
 inquireBtn.addEventListener("click", openInquiryModal);
 closeInquiryBtn.addEventListener("click", closeInquiryModal);
 cancelInquiryBtn.addEventListener("click", closeInquiryModal);
 inquiryModal.addEventListener("click", (event) => {
   if (event.target === inquiryModal) {
     closeInquiryModal();
-  }
-});
-
-addPaintingBtn.addEventListener("click", openAddPaintingModal);
-closeAddPaintingBtn.addEventListener("click", closeAddPaintingModal);
-cancelAddPaintingBtn.addEventListener("click", closeAddPaintingModal);
-addPaintingModal.addEventListener("click", (event) => {
-  if (event.target === addPaintingModal) {
-    closeAddPaintingModal();
   }
 });
 
@@ -161,126 +134,6 @@ inquiryForm.addEventListener("submit", (event) => {
   closeInquiryModal();
 });
 
-async function loadSavedPaintings() {
-  try {
-    const response = await fetch("/api/paintings");
-    if (!response.ok) return;
-
-    const savedPaintings = await response.json();
-    const seenImages = new Set();
-    const uniqueSavedPaintings = savedPaintings.filter((item) => {
-      const key = (item.image || "").toLowerCase();
-      if (!key || seenImages.has(key)) return false;
-      seenImages.add(key);
-      return true;
-    });
-
-    paintings.splice(0, paintings.length, ...uniqueSavedPaintings);
-    renderPaintings();
-  } catch (error) {
-    console.warn("No saved paintings loaded yet.", error);
-  }
-}
-
-async function fetchWithAdminAccess(url, options) {
-  const storageKey = "art-gallery-admin-password";
-  let password = sessionStorage.getItem(storageKey);
-
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    if (!password) {
-      password = window.prompt("Enter the gallery admin password:");
-    }
-    if (password === null) return null;
-
-    const response = await fetch(url, {
-      ...options,
-      headers: { ...options.headers, "X-Admin-Password": password }
-    });
-
-    if (response.status !== 401) {
-      sessionStorage.setItem(storageKey, password);
-      return response;
-    }
-
-    sessionStorage.removeItem(storageKey);
-    password = null;
-  }
-
-  throw new Error("Incorrect admin password.");
-}
-
-addPaintingForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const fileInput = document.getElementById("paintingImage");
-  const file = fileInput.files && fileInput.files[0];
-
-  if (!file) {
-    alert("Please select a painting image.");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("artist", document.getElementById("artistName").value.trim());
-    formData.append("title", document.getElementById("paintingTitle").value.trim());
-    formData.append("date", document.getElementById("paintingDate").value);
-    formData.append("description", document.getElementById("paintingDescription").value.trim());
-    formData.append("price", document.getElementById("paintingPrice").value.trim());
-    formData.append("image", file);
-
-    const response = await fetchWithAdminAccess("/api/upload", {
-      method: "POST",
-      body: formData
-    });
-    if (!response) return;
-
-    if (!response.ok) {
-      throw new Error("Upload failed");
-    }
-
-    const newPainting = await response.json();
-    paintings.push(newPainting);
-    renderPaintings();
-    showDetails(newPainting);
-    closeAddPaintingModal();
-  } catch (error) {
-    alert("The painting could not be uploaded. Check the server and admin password, then try again.");
-  }
-});
-
-deletePaintingBtn.addEventListener("click", async () => {
-  if (!selectedPainting) return;
-
-  const confirmed = window.confirm(`Delete "${selectedPainting.title}"?`);
-  if (!confirmed) return;
-
-  try {
-    const response = await fetchWithAdminAccess("/api/delete", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ image: selectedPainting.image })
-    });
-    if (!response) return;
-
-    if (!response.ok) {
-      throw new Error("Delete failed");
-    }
-
-    const index = paintings.findIndex((painting) => painting.image === selectedPainting.image);
-    if (index >= 0) {
-      paintings.splice(index, 1);
-    }
-
-    renderPaintings();
-    resetDetailsView();
-  } catch (error) {
-    alert("The painting could not be deleted.");
-  }
-});
-
 function formatDate(dateStr) {
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-GB", {
@@ -290,7 +143,5 @@ function formatDate(dateStr) {
   });
 }
 
-loadSavedPaintings().then(() => {
-  renderPaintings();
-  resetDetailsView();
-});
+renderPaintings();
+resetDetailsView();

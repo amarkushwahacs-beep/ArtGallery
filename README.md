@@ -1,18 +1,21 @@
 # ArtGallery
 
-## Deploy on Render
+## Deploy on GitHub Pages
 
 1. Push this project to a GitHub repository.
-2. In Render, choose **New +** then **Blueprint**, and connect the repository.
-3. Enter a strong value for `ADMIN_PASSWORD` when prompted. Keep it private.
-4. Deploy the `art-gallery` service and open its generated `onrender.com` URL.
+2. In the repository, open **Settings → Pages**.
+3. Under **Build and deployment**, choose **Deploy from a branch**.
+4. Select the `main` branch and the `/(root)` folder, then save.
+5. Open the published URL shown in the Pages settings after deployment completes.
 
-The blueprint configures a persistent disk for uploaded paintings. It uses Render's
-Starter web-service plan because persistent disks are not available on the free plan.
-The gallery can be viewed publicly; adding or deleting paintings requires the admin
-password. Uploaded files are stored separately from the application deployment.
+This is a static, read-only gallery. To add or update artwork, put its image in
+`Upload_Painting/` and add its details to `assets/js/gallery-data.js`, then commit
+and push the changes. GitHub Pages does not run the Python API, so online uploads
+and deletes are disabled. The inquiry form opens the visitor's email application.
 
 ## Run locally
 
-Run `python server.py` and open `http://localhost:8000`. To use upload/delete locally,
-set the `ADMIN_PASSWORD` environment variable before starting the server.
+Run `python server.py` and open `http://localhost:8000`. The local Python server
+is retained for backend development; the gallery UI in this Pages version is
+read-only. Edit `assets/js/gallery-data.js` and add images under `Upload_Painting/`
+to update the static gallery.

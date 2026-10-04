@@ -546,7 +546,6 @@
     <div class="pathway">
       <div class="gallery-toolbar">
         <div class="gallery-title">Soni's Art Gallery</div>
-        <button class="btn btn-primary" id="openAddPaintingBtn" type="button">Add Painting</button>
       </div>
       <div class="gallery-subtitle">
         Walk through a virtual corridor of curated artworks. Click any painting to reveal its story.
@@ -566,7 +565,6 @@
           <div class="details-actions">
             <button class="btn btn-secondary" id="moreArtistBtn">More from artist</button>
             <button class="btn btn-primary" id="inquireBtn">Contact for Pricing</button>
-            <button class="btn btn-danger" id="deletePaintingBtn" type="button">Delete Painting</button>
           </div>
         </div>
 
@@ -610,54 +608,6 @@
           <div class="inquiry-actions">
             <button type="button" class="btn btn-danger" id="cancelInquiryBtn">Cancel</button>
             <button type="submit" class="btn btn-primary">Submit</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="add-painting-modal" id="addPaintingModal" aria-hidden="true">
-      <div class="inquiry-form" role="dialog" aria-modal="true" aria-labelledby="addPaintingTitle">
-        <div class="inquiry-header">
-          <div class="inquiry-title" id="addPaintingTitle">Add new painting</div>
-          <button class="btn btn-danger" id="closeAddPaintingBtn" type="button">Close</button>
-        </div>
-
-        <form id="addPaintingForm">
-          <div class="form-grid">
-            <label class="field">
-              <span>Artist Name</span>
-              <input type="text" id="artistName" name="artistName" required />
-            </label>
-
-            <label class="field">
-              <span>Painting Title</span>
-              <input type="text" id="paintingTitle" name="paintingTitle" required />
-            </label>
-
-            <label class="field">
-              <span>Date</span>
-              <input type="date" id="paintingDate" name="paintingDate" required />
-            </label>
-
-            <label class="field">
-              <span>Price</span>
-              <input type="text" id="paintingPrice" name="paintingPrice" placeholder="e.g. $500" required />
-            </label>
-
-            <label class="field full">
-              <span>Description</span>
-              <textarea id="paintingDescription" name="paintingDescription" required></textarea>
-            </label>
-
-            <label class="field full">
-              <span>Upload Painting</span>
-              <input type="file" id="paintingImage" name="paintingImage" accept="image/*" required />
-            </label>
-          </div>
-
-          <div class="inquiry-actions">
-            <button type="button" class="btn btn-danger" id="cancelAddPaintingBtn">Cancel</button>
-            <button type="submit" class="btn btn-primary">Add to Gallery</button>
           </div>
         </form>
       </div>
