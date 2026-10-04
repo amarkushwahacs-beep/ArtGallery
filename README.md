@@ -20,3 +20,10 @@ shows the Add painting and Delete painting controls. The API is restricted to lo
 requests only, so uploaded or deleted works stay local to the development environment.
 If `ADMIN_PASSWORD` is set, the request must include the matching `X-Admin-Password`
 header.
+
+## Email inquiries
+
+Submitting the artwork inquiry form opens a draft in the visitor's default email
+app. It is addressed to `xxxxxxxx@outlook.com`, copies the visitor's email,
+and includes the artwork and form details. The visitor reviews and sends the email
+from their email app; no SMTP configuration is required.

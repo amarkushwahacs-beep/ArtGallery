@@ -1,5 +1,9 @@
 const artworkPage = document.getElementById("artworkPage");
 const artworkId = new URLSearchParams(window.location.search).get("id");
+const inquiryDialog = document.getElementById("inquiryDialog");
+const inquiryForm = document.getElementById("inquiryForm");
+const inquiryArtwork = document.getElementById("inquiryArtwork");
+const inquiryStatus = document.getElementById("inquiryStatus");
 let activePaintings = Array.isArray(paintings) ? [...paintings] : [];
 
 function isLocalhost() {
@@ -80,10 +84,18 @@ function renderArtwork(painting) {
   price.textContent = painting.price || "Contact for pricing";
   priceBlock.append(priceLabel, price);
 
-  const inquiry = document.createElement("a");
+  const inquiry = document.createElement("button");
   inquiry.className = "inquiry-link";
-  inquiry.href = `mailto:amarmaddy000@gmail.com?subject=${encodeURIComponent(`Inquiry for ${painting.title || "artwork"}`)}`;
+  inquiry.type = "button";
   inquiry.textContent = "Ask about this work";
+  inquiry.addEventListener("click", () => {
+    inquiryArtwork.textContent = `${painting.title || "Untitled artwork"} by ${painting.artist || "Unknown artist"} | ${painting.price || "Contact for pricing"}`;
+    inquiryStatus.textContent = "";
+    inquiryStatus.dataset.state = "";
+    inquiryForm.querySelector('[type="submit"]').textContent = "Open email";
+    inquiryDialog.showModal();
+    inquiryForm.elements.name.focus();
+  });
   priceRow.append(priceBlock, inquiry);
 
   const artistWorksToggle = document.createElement("button");
@@ -212,3 +224,46 @@ async function loadArtwork() {
 }
 
 loadArtwork();
+
+function closeInquiryDialog() {
+  inquiryDialog.close();
+  inquiryForm.reset();
+  inquiryStatus.textContent = "";
+  inquiryStatus.dataset.state = "";
+}
+
+document.getElementById("closeInquiryButton").addEventListener("click", closeInquiryDialog);
+document.getElementById("cancelInquiryButton").addEventListener("click", closeInquiryDialog);
+
+inquiryDialog.addEventListener("click", (event) => {
+  if (event.target === inquiryDialog) closeInquiryDialog();
+});
+
+function buildInquiryMailto(painting, fields) {
+  const title = painting?.title || "Artwork";
+  const subject = encodeURIComponent(`Inquiry for ${title}`);
+  const cc = encodeURIComponent(fields.get("email"));
+  const body = encodeURIComponent([
+    `Artwork: ${title}`,
+    `Artist: ${painting?.artist || "Unknown artist"}`,
+    `Price: ${painting?.price || "Contact for pricing"}`,
+    `Created: ${formatDate(painting?.date)}`,
+    `Description: ${painting?.description || "No description provided"}`,
+    "",
+    `Name: ${fields.get("name")}`,
+    `Email: ${fields.get("email")}`,
+    `Phone: ${fields.get("phone")}`,
+    "",
+    "Comments:",
+    fields.get("comments")
+  ].join("\n"));
+
+  return `mailto:amarkushwahacs@outlook.com?cc=${cc}&subject=${subject}&body=${body}`;
+}
+
+inquiryForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const fields = new FormData(inquiryForm);
+  const selectedPainting = activePaintings.find((painting) => painting.id === artworkId);
+  window.location.href = buildInquiryMailto(selectedPainting, fields);
+});

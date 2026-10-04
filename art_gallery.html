@@ -78,11 +78,9 @@
       box-shadow: inset 20px 0 40px rgba(0, 0, 0, 0.8);
     }
 
-    /* Central pathway */
+    /* Center gallery content */
     .pathway {
-      background: linear-gradient(to right, rgba(28, 15, 12, 0.24), transparent 12%, transparent 88%, rgba(28, 15, 12, 0.24));
-      border-left: 1px solid rgba(54, 35, 26, 0.5);
-      border-right: 1px solid rgba(54, 35, 26, 0.5);
+      background: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -113,18 +111,6 @@
       transform: translateY(0) scale(1);
     }
 
-    .pathway::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(to right, rgba(54, 35, 26, 0.68), rgba(241, 220, 198, 0.38), rgba(54, 35, 26, 0.68));
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0.85;
-    }
-
     .gallery-toolbar {
       position: relative;
       display: flex;
@@ -136,20 +122,24 @@
     }
 
     .gallery-title {
-      font-size: 1.4rem;
+      font-size: 48px;
+      font-weight: 700;
       letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--accent-color);
+      color: #17645f;
       text-align: center;
       margin: 0;
     }
 
+    .gallery-toolbar .btn-secondary {
+      color: #17645f;
+      border-color: #17645f;
+    }
+
     .gallery-subtitle {
       font-size: 0.95rem;
-      color: #f1e4d3;
+      color: #4d4137;
       text-align: center;
       max-width: 480px;
-      text-shadow: 0 1px 4px rgba(28, 15, 12, 0.9);
     }
 
     /* Painting frames */
@@ -555,7 +545,9 @@
     <!-- Central pathway and details panel -->
     <div class="pathway">
       <div class="gallery-toolbar">
-        <div class="gallery-title">Soni's Art Gallery</div>
+        <div class="gallery-title">SONI's </div>
+        <div class="gallery-title"> Art </div>
+        <div class="gallery-title">Gallery</div>
         <button class="btn btn-secondary" id="addPaintingBtn" type="button" style="display: none;">Add painting</button>
       </div>
       <div class="gallery-subtitle">

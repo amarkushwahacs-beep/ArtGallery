@@ -346,7 +346,7 @@ inquiryForm.addEventListener("submit", (event) => {
     `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nComments:\n${comments}`
   );
 
-  window.location.href = `mailto:amarmaddy000@gmail.com?subject=${subject}&body=${body}`;
+  window.location.href = `mailto:amarkushwahacs@outlook.com?subject=${subject}&body=${body}`;
   closeInquiryModal();
 });
 
