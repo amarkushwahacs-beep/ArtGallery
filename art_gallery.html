@@ -94,8 +94,8 @@
     }
 
     .selected-artwork {
-      width: min(320px, 72%);
-      height: clamp(220px, 42vh, 420px);
+      width: min(800px, 80%);
+      height: clamp(480px, 52vh, 520px);
       margin: 14px auto 28px;
       border: 4px solid rgba(102, 252, 241, 0.9);
       border-radius: 18px;
@@ -221,10 +221,9 @@
 
     /* Detail panel */
     .details-panel {
-      position: absolute;
-      left: 50%;
-      bottom: 20px;
-      transform: translateX(-50%);
+      position: relative;
+      left: auto;
+      bottom: auto;
       width: min(520px, calc(100% - 22px));
       background: rgba(13, 17, 25, 0.96);
       border-radius: 18px;
@@ -237,14 +236,15 @@
       visibility: hidden;
       pointer-events: none;
       transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
-      transform: translateX(-50%) translateY(10px);
+      transform: translateY(10px);
+      margin: 0 auto;
     }
 
     .details-panel.visible {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      transform: translateX(-50%) translateY(0);
+      transform: translateY(0);
     }
 
     .details-header {
@@ -523,9 +523,9 @@
         height: 200px;
       }
 
-      .selected-artwork {
-        width: min(260px, 72vw);
-        height: clamp(180px, 28vh, 280px);
+.selected-artwork {
+        width: min(320px, 82vw);
+        height: clamp(220px, 36vh, 360px);
       }
 
       .details-panel {
